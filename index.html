@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meu Dia" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Meu Dia</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css" />
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #f5f5f3;
+      --surface:  #ffffff;
+      --surface2: #f0efea;
+      --border:   rgba(0,0,0,0.10);
+      --border2:  rgba(0,0,0,0.18);
+      --text:     #1a1a18;
+      --text2:    #6b6b67;
+      --text3:    #a0a09c;
+      --accent:   #1a1a18;
+      --blue-bg:  #e6f1fb;
+      --blue-txt: #185fa5;
+      --green-bg: #eaf3de;
+      --green-txt:#3b6d11;
+      --red-bg:   #fcebeb;
+      --red-txt:  #a32d2d;
+      --amber-bg: #faeeda;
+      --amber-txt:#854f0b;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #1c1c1a;
+        --surface:  #252522;
+        --surface2: #2e2e2b;
+        --border:   rgba(255,255,255,0.10);
+        --border2:  rgba(255,255,255,0.18);
+        --text:     #f0efe8;
+        --text2:    #9a9992;
+        --text3:    #5c5c58;
+        --accent:   #f0efe8;
+        --blue-bg:  #0c2a45;
+        --blue-txt: #85b7eb;
+        --green-bg: #172c09;
+        --green-txt:#97c459;
+        --red-bg:   #300f0f;
+        --red-txt:  #f09595;
+        --amber-bg: #2e1e05;
+        --amber-txt:#ef9f27;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    /* ── App shell ── */
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border);
+      padding: calc(14px + var(--safe-top)) 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+    }
+    .back-btn {
+      background: none;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-md);
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text2);
+      flex-shrink: 0;
+      transition: background 0.12s;
+    }
+    .back-btn:hover { background: var(--surface2); }
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+    .header-add {
+      background: none;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-md);
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text2);
+      transition: background 0.12s;
+    }
+    .header-add:hover { background: var(--surface2); }
+    .notif-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.12s;
+    }
+    .notif-pill.on  { background: var(--green-bg); color: var(--green-txt); }
+    .notif-pill.off { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      padding: 14px 16px calc(20px + var(--safe-bot));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    /* ── Section label ── */
+    .sec-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 2px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+    }
+
+    /* ── Generic item ── */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .item-check {
+      width: 17px; height: 17px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    .item-body { flex: 1; min-width: 0; }
+    .item-text { font-size: 14px; color: var(--text); word-break: break-word; line-height: 1.4; }
+    .item-sub  { font-size: 12px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+    .item-del  {
+      background: none; border: none;
+      color: var(--text3); cursor: pointer;
+      font-size: 15px; flex-shrink: 0;
+      padding: 0 2px; line-height: 1;
+      transition: color 0.12s;
+    }
+    .item-del:hover { color: var(--red-txt); }
+    .done-item .item-text { text-decoration: line-through; opacity: 0.45; }
+    .done-item { opacity: 0.6; }
+
+    /* ── Item list ── */
+    .item-list { display: flex; flex-direction: column; gap: 5px; }
+
+    /* ── Empty ── */
+    .empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text3);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── HOME ── */
+    .home-wrap {
+      flex: 1;
+      padding: 16px;
+    }
+    .home-date {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .home-date strong { font-weight: 600; color: var(--text); }
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .home-tile {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 8px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.1s, background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .home-tile:active { transform: scale(0.94); background: var(--surface2); }
+    .home-tile-icon { font-size: 28px; color: var(--text); }
+    .home-tile-label { font-size: 12px; color: var(--text2); text-align: center; line-height: 1.3; }
+    .home-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      min-width: 18px; height: 18px;
+      border-radius: 9px;
+      background: var(--red-bg);
+      color: var(--red-txt);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+
+    /* ── NOTES ── */
+    .note-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 13px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .note-row:active { background: var(--surface2); }
+    .note-row-title { flex: 1; font-size: 14px; color: var(--text); }
+    .note-row-date  { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+    .note-detail { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+    .note-detail-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+    .note-detail-text  { font-size: 14px; color: var(--text2); white-space: pre-wrap; line-height: 1.65; }
+    .note-detail-ts    { font-size: 11px; color: var(--text3); margin-top: 12px; }
+
+    /* ── AGENDA ── */
+    .week-block { margin-bottom: 14px; }
+    .week-label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+    .ag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .ag-item.today-ev { border-color: var(--blue-txt); }
+    .ag-pill {
+      background: var(--surface2);
+      border-radius: var(--radius-md);
+      padding: 5px 8px;
+      text-align: center;
+      flex-shrink: 0;
+      min-width: 44px;
+    }
+    .ag-pill.today-pill { background: var(--blue-bg); }
+    .ag-day   { font-size: 17px; font-weight: 600; color: var(--text); line-height: 1; }
+    .ag-month { font-size: 9px; text-transform: uppercase; color: var(--text2); margin-top: 1px; }
+    .today-pill .ag-day   { color: var(--blue-txt); }
+    .today-pill .ag-month { color: var(--blue-txt); opacity: .7; }
+    .ag-body  { flex: 1; min-width: 0; }
+    .ag-time  { font-size: 11px; color: var(--text3); }
+    .ag-title { font-size: 14px; color: var(--text); line-height: 1.35; }
+    .ag-desc  { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    /* ── TREINO ── */
+    .day-chips {
+      display: flex; gap: 6px;
+      overflow-x: auto; padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .day-chips::-webkit-scrollbar { display: none; }
+    .day-chip {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text2);
+      cursor: pointer;
+      transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .day-chip.active { background: var(--accent); color: var(--bg); border-color: transparent; font-weight: 600; }
+    .day-chip.today  { font-weight: 600; }
+    .group-label { font-size: 12px; font-weight: 600; color: var(--text2); margin: 10px 0 4px; display: flex; align-items: center; gap: 4px; }
+    .ex-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 11px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 5px;
+      transition: opacity 0.15s;
+    }
+    .ex-check { width: 17px; height: 17px; accent-color: var(--green-txt); cursor: pointer; flex-shrink: 0; }
+    .ex-name  { flex: 1; font-size: 14px; color: var(--text); }
+    .ex-sets  { font-size: 12px; color: var(--text2); flex-shrink: 0; }
+    .ex-item.ex-done .ex-name { text-decoration: line-through; opacity: .45; }
+    .ex-item.ex-done { opacity: .6; }
+    .treino-status { font-size: 13px; color: var(--text2); }
+    .treino-status strong { color: var(--text); font-weight: 600; }
+
+    /* ── CONTAS ── */
+    .conta-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .conta-check { width: 17px; height: 17px; accent-color: var(--green-txt); cursor: pointer; flex-shrink: 0; }
+    .conta-body  { flex: 1; min-width: 0; }
+    .conta-name  { font-size: 14px; color: var(--text); }
+    .conta-venc  { font-size: 12px; color: var(--text2); margin-top: 1px; }
+    .conta-venc.urgent { color: var(--red-txt); font-weight: 600; }
+    .conta-val   { font-size: 13px; font-weight: 600; color: var(--text); flex-shrink: 0; }
+    .conta-item.conta-paga { opacity: .5; }
+    .conta-item.conta-paga .conta-val { color: var(--green-txt); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 100;
+      padding-bottom: var(--safe-bot);
+    }
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 20px 16px calc(16px + var(--safe-bot));
+      width: 100%; max-width: 430px;
+      display: flex; flex-direction: column; gap: 10px;
+      animation: slideUp 0.22s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .modal-box input,
+    .modal-box textarea,
+    .modal-box select {
+      width: 100%;
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .modal-box input:focus,
+    .modal-box textarea:focus { border-color: var(--accent); }
+    .modal-box textarea { min-height: 90px; resize: vertical; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-save {
+      flex: 1; background: var(--accent); color: var(--bg);
+      border: none; border-radius: var(--radius-md);
+      padding: 11px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-save:hover { opacity: .85; }
+    .btn-cancel {
+      flex: 1; background: var(--surface2); color: var(--text2);
+      border: 0.5px solid var(--border2); border-radius: var(--radius-md);
+      padding: 11px; font-size: 14px; cursor: pointer; font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ══════════════════════════════════════
+   MEU DIA — App completo
+   Versão 2.0
+   Para atualizar: edite as seções
+   marcadas com comentários abaixo.
+══════════════════════════════════════ */
+
+const DAYS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MONTHS= ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const now   = new Date();
+const todayDow = now.getDay(); // 0=Dom … 6=Sáb
+
+/* ── Estado persistido ── */
+let S = JSON.parse(localStorage.getItem('meudia_v2') || 'null') || {
+  notes:  [],   // { id, title, text, ts }
+  pauta:  [],   // { id, title, desc, done }
+  agenda: [],   // { id, title, desc, dt, time }
+  treino: {},   // { [dow]: [{id, name, sets, group, done}] }
+  contas: [],   // { id, name, val, venc, paid }
+  notif:  false
+};
+let V = { screen: 'home', sub: null, treinoDow: todayDow };
+
+function save() { localStorage.setItem('meudia_v2', JSON.stringify(S)); }
+function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Formatadores de data ── */
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso.includes('T') ? iso : iso + 'T12:00');
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtFull(iso) {
+  if (!iso) return '';
+  return fmtDate(iso) + ' ' + fmtTime(iso);
+}
+
+/* ── Badges para o menu ── */
+function badge(sec) {
+  if (sec === 'pauta')  return S.pauta.filter(p=>!p.done).length;
+  if (sec === 'contas') return S.contas.filter(c=>!c.paid).length;
+  if (sec === 'agenda') return S.agenda.filter(a=>new Date(a.dt)>=now).length;
+  if (sec === 'treino') {
+    const ex = S.treino[todayDow] || [];
+    const rem = ex.filter(e=>!e.done).length;
+    return rem;
+  }
+  return 0;
+}
+
+/* ── Notificações ── */
+async function toggleNotif() {
+  if (!('Notification' in window)) { alert('Notificações não suportadas neste navegador.'); return; }
+  if (S.notif) { S.notif = false; save(); render(); return; }
+  const p = await Notification.requestPermission();
+  if (p === 'granted') {
+    S.notif = true; save(); render();
+    new Notification('Meu Dia', { body: 'Notificações ativadas!' });
+    scheduleNotifs();
+  } else {
+    alert('Permissão negada. Habilite nas configurações do Safari.');
+  }
+}
+function scheduleNotifs() {
+  if (!S.notif || Notification.permission !== 'granted') return;
+  const n = Date.now();
+  S.agenda.forEach(ev => {
+    const t = new Date(ev.dt).getTime() - 15*60000 - n;
+    if (t > 0 && t < 24*3600000)
+      setTimeout(() => { if (S.notif) new Notification('Compromisso em 15 min', { body: ev.title }); }, t);
+  });
+  S.contas.forEach(c => {
+    if (!c.paid && c.venc) {
+      const t = new Date(c.venc + 'T09:00').getTime() - n;
+      if (t > 0 && t < 48*3600000)
+        setTimeout(() => { if (S.notif) new Notification('Conta a pagar amanhã', { body: c.name + (c.val ? ' — R$ ' + Number(c.val).toFixed(2) : '') }); }, t);
+    }
+  });
+}
+
+/* ── Modal ── */
+function showModal(html, onSave) {
+  closeModal();
+  const el = document.createElement('div');
+  el.id = 'modal'; el.className = 'modal-overlay';
+  el.innerHTML = `<div class="modal-box">${html}
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save"   onclick="_modalSave()">Salvar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => { if (e.target === el) closeModal(); });
+  window._modalSave = () => { onSave(); closeModal(); };
+  // Focus first input
+  setTimeout(() => { const i = el.querySelector('input,textarea'); if (i) i.focus(); }, 50);
+}
+function closeModal() { const el = document.getElementById('modal'); if (el) el.remove(); }
+
+/* ══════════════════
+   TELA: HOME
+══════════════════ */
+const SECTIONS = [
+  { id:'pauta',  icon:'ti-list-check', label:'Pauta'  },
+  { id:'agenda', icon:'ti-calendar',   label:'Agenda' },
+  { id:'treino', icon:'ti-barbell',    label:'Treino' },
+  { id:'contas', icon:'ti-wallet',     label:'Contas' },
+  { id:'notas',  icon:'ti-note',       label:'Notas'  },
+];
+
+function renderHome() {
+  const tiles = SECTIONS.map(s => {
+    const b = badge(s.id);
+    return `<div class="home-tile" onclick="go('${s.id}')">
+      ${b ? `<div class="home-badge">${b}</div>` : ''}
+      <i class="ti ${s.icon} home-tile-icon" aria-hidden="true"></i>
+      <span class="home-tile-label">${s.label}</span>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="header">
+    <div class="header-row">
+      <div class="header-title">Meu Dia</div>
+      <button class="notif-pill ${S.notif?'on':'off'}" onclick="toggleNotif()">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+        ${S.notif ? 'Notif. ativas' : 'Ativar notif.'}
+      </button>
+    </div>
+  </div>
+  <div class="home-wrap">
+    <div class="home-date">
+      <strong>${now.toLocaleDateString('pt-BR',{weekday:'long'})}</strong>,
+      ${now.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'})}
+    </div>
+    <div class="home-grid">${tiles}</div>
+  </div>`;
+}
+
+/* ══════════════════
+   TELA: NOTAS
+══════════════════ */
+function renderNotas() {
+  // Detalhe de nota
+  if (V.sub && V.sub.type === 'nota') {
+    const n = S.notes.find(x => x.id === V.sub.id);
+    if (n) return `
+    <div class="header">
+      <div class="header-row">
+        <button class="back-btn" onclick="V.sub=null;render()"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="header-title" style="font-size:14px">${esc(n.title)}</div>
+        <button class="header-add" onclick="delNota('${n.id}')" aria-label="Excluir"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="note-detail">
+        <div class="note-detail-title">${esc(n.title)}</div>
+        <div class="note-detail-text">${esc(n.text)}</div>
+        <div class="note-detail-ts">${fmtFull(n.ts)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Lista de notas
+  return `
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">Notas</div>
+      <button class="header-add" onclick="openAddNota()" aria-label="Nova nota"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="item-list">
+      ${S.notes.length
+        ? S.notes.slice().reverse().map(n => `
+          <div class="note-row" onclick="V.sub={type:'nota',id:'${n.id}'};render()">
+            <div class="note-row-title">${esc(n.title)}</div>
+            <div class="note-row-date">${fmtDate(n.ts)}</div>
+            <i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i>
+          </div>`).join('')
+        : '<div class="empty">Nenhuma nota ainda.<br>Use o <strong>+</strong> para criar.</div>'}
+    </div>
+  </div>`;
+}
+function openAddNota() {
+  showModal(`<div class="modal-title">Nova nota</div>
+    <input  type="text"  id="m-ntitle"  placeholder="Título"          />
+    <textarea            id="m-ntext"   placeholder="Conteúdo..."></textarea>`,
+  () => {
+    const t = document.getElementById('m-ntitle').value.trim();
+    const x = document.getElementById('m-ntext').value.trim();
+    if (!t && !x) return;
+    S.notes.push({ id:uid(), title:t||'Sem título', text:x, ts:new Date().toISOString() });
+    save(); render();
+  });
+}
+function delNota(id) { S.notes = S.notes.filter(x=>x.id!==id); V.sub=null; save(); render(); }
+
+/* ══════════════════
+   TELA: PAUTA
+══════════════════ */
+function renderPauta() {
+  const pend = S.pauta.filter(p=>!p.done);
+  const done = S.pauta.filter(p=> p.done);
+  return `
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">Pauta</div>
+      <button class="header-add" onclick="openAddPauta()" aria-label="Nova tarefa"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="sec-label">Pendentes (${pend.length})</div>
+    <div class="item-list">
+      ${pend.length
+        ? pend.map(p=>`
+          <div class="item">
+            <input type="checkbox" class="item-check" onchange="togglePauta('${p.id}')" />
+            <div class="item-body">
+              <div class="item-text">${esc(p.title)}</div>
+              ${p.desc ? `<div class="item-sub">${esc(p.desc)}</div>` : ''}
+            </div>
+            <button class="item-del" onclick="delItem('pauta','${p.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+          </div>`).join('')
+        : '<div class="empty">Nenhuma tarefa pendente.<br>Use o <strong>+</strong> para adicionar.</div>'}
+    </div>
+    ${done.length ? `
+    <div class="sec-label" style="margin-top:8px;opacity:.6">Concluídas (${done.length})</div>
+    <div class="item-list">
+      ${done.map(p=>`
+        <div class="item done-item">
+          <input type="checkbox" class="item-check" checked onchange="togglePauta('${p.id}')" />
+          <div class="item-body">
+            <div class="item-text">${esc(p.title)}</div>
+            ${p.desc ? `<div class="item-sub">${esc(p.desc)}</div>` : ''}
+          </div>
+          <button class="item-del" onclick="delItem('pauta','${p.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+        </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+function openAddPauta() {
+  showModal(`<div class="modal-title">Nova tarefa</div>
+    <input type="text" id="m-ptitle" placeholder="Título da tarefa"        />
+    <input type="text" id="m-pdesc"  placeholder="Descrição (opcional)"    />`,
+  () => {
+    const t = document.getElementById('m-ptitle').value.trim();
+    if (!t) return;
+    S.pauta.push({ id:uid(), title:t, desc:document.getElementById('m-pdesc').value.trim(), done:false });
+    save(); render();
+  });
+}
+function togglePauta(id) { const p=S.pauta.find(x=>x.id===id); if(p){p.done=!p.done;save();render();} }
+
+/* ══════════════════
+   TELA: AGENDA
+══════════════════ */
+function weekStart(dt) {
+  const d = new Date(dt);
+  const dow = d.getDay();
+  d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  return d.toISOString().slice(0,10);
+}
+function weekRangeLabel(key) {
+  const mon = new Date(key + 'T12:00');
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  return `${mon.getDate()} ${MONTHS[mon.getMonth()]} — ${sun.getDate()} ${MONTHS[sun.getMonth()]}`;
+}
+function renderAgenda() {
+  const future = S.agenda
+    .filter(a => new Date(a.dt) >= now)
+    .sort((a,b) => new Date(a.dt) - new Date(b.dt));
+  const weeks = {};
+  future.forEach(a => { const k=weekStart(a.dt); if(!weeks[k])weeks[k]=[]; weeks[k].push(a); });
+  const wkeys = Object.keys(weeks).sort();
+
+  return `
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">Agenda</div>
+      <button class="header-add" onclick="openAddAgenda()" aria-label="Novo compromisso"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    ${wkeys.length
+      ? wkeys.map(k => `
+        <div class="week-block">
+          <div class="week-label">Semana ${weekRangeLabel(k)}</div>
+          <div class="item-list">
+            ${weeks[k].map(a => {
+              const d = new Date(a.dt);
+              const isToday = d.toDateString() === now.toDateString();
+              return `<div class="ag-item${isToday?' today-ev':''}">
+                <div class="ag-pill${isToday?' today-pill':''}">
+                  <div class="ag-day">${String(d.getDate()).padStart(2,'0')}</div>
+                  <div class="ag-month">${MONTHS[d.getMonth()]}</div>
+                </div>
+                <div class="ag-body">
+                  <div class="ag-time">${DAYS[d.getDay()]}${a.time ? ' · ' + a.time : ''}</div>
+                  <div class="ag-title">${esc(a.title)}</div>
+                  ${a.desc ? `<div class="ag-desc">${esc(a.desc)}</div>` : ''}
+                </div>
+                <button class="item-del" onclick="delItem('agenda','${a.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`).join('')
+      : '<div class="empty">Nenhum compromisso futuro.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+function openAddAgenda() {
+  showModal(`<div class="modal-title">Novo compromisso</div>
+    <input type="text" id="m-atitle" placeholder="Título do compromisso"       />
+    <input type="text" id="m-adesc"  placeholder="Local / descrição (opcional)"/>
+    <input type="date" id="m-adt"    />
+    <input type="time" id="m-atime"  placeholder="Horário (opcional)"          />`,
+  () => {
+    const t  = document.getElementById('m-atitle').value.trim();
+    const dt = document.getElementById('m-adt').value;
+    if (!t || !dt) return;
+    const time = document.getElementById('m-atime').value;
+    S.agenda.push({
+      id:uid(), title:t,
+      desc:document.getElementById('m-adesc').value.trim(),
+      dt: dt + 'T' + (time || '00:00'),
+      time: time || null
+    });
+    save(); if (S.notif) scheduleNotifs(); render();
+  });
+}
+
+/* ══════════════════
+   TELA: TREINO
+══════════════════ */
+function renderTreino() {
+  const sel = V.treinoDow;
+  const exs = S.treino[sel] || [];
+  const done = exs.filter(e=>e.done).length;
+  const groups = {};
+  exs.forEach(e => { const g=e.group||'Geral'; if(!groups[g])groups[g]=[]; groups[g].push(e); });
+  const gkeys = Object.keys(groups);
+
+  const chips = DAYS.map((d,i) => `
+    <div class="day-chip${V.treinoDow===i?' active':''}${i===todayDow?' today':''}"
+         onclick="V.treinoDow=${i};render()">
+      ${d}${i===todayDow?'·':''}
+    </div>`).join('');
+
+  return `
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">Treino</div>
+      <button class="header-add" onclick="openAddEx()" aria-label="Novo exercício"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="day-chips">${chips}</div>
+    <div class="treino-status">
+      <strong>${sel===todayDow?'Hoje — '+DAYS[sel]:DAYS[sel]}</strong>
+      &nbsp;·&nbsp;
+      ${exs.length ? `${done} de ${exs.length} exercícios` : 'Nenhum exercício cadastrado'}
+    </div>
+    ${gkeys.length
+      ? gkeys.map(g => `
+        <div class="group-label">
+          <i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>
+          ${esc(g)} &nbsp;<span style="font-weight:400;color:var(--text3)">(${groups[g].filter(e=>e.done).length}/${groups[g].length})</span>
+        </div>
+        ${groups[g].map(e=>`
+          <div class="ex-item${e.done?' ex-done':''}">
+            <input type="checkbox" class="ex-check" ${e.done?'checked':''} onchange="toggleEx(${sel},'${e.id}')" />
+            <div class="ex-name">${esc(e.name)}</div>
+            ${e.sets ? `<div class="ex-sets">${esc(e.sets)}</div>` : ''}
+            <button class="item-del" onclick="delEx(${sel},'${e.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+          </div>`).join('')}`).join('')
+      : '<div class="empty">Nenhum exercício para este dia.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+function openAddEx() {
+  const sel = V.treinoDow;
+  showModal(`<div class="modal-title">Exercício — ${DAYS[sel]}${sel===todayDow?' (hoje)':''}</div>
+    <input type="text" id="m-exname"  placeholder="Nome do exercício"               />
+    <input type="text" id="m-exsets"  placeholder="Séries / reps (ex: 4×12, 60s)"   />
+    <input type="text" id="m-exgroup" placeholder="Grupo muscular (ex: Peito, Costas)"/>`,
+  () => {
+    const n = document.getElementById('m-exname').value.trim();
+    if (!n) return;
+    if (!S.treino[sel]) S.treino[sel] = [];
+    S.treino[sel].push({
+      id:uid(), name:n,
+      sets: document.getElementById('m-exsets').value.trim(),
+      group: document.getElementById('m-exgroup').value.trim() || 'Geral',
+      done: false
+    });
+    save(); render();
+  });
+}
+function toggleEx(day,id) { const e=(S.treino[day]||[]).find(x=>x.id===id); if(e){e.done=!e.done;save();render();} }
+function delEx(day,id)    { S.treino[day]=(S.treino[day]||[]).filter(x=>x.id!==id); save(); render(); }
+
+/* ══════════════════
+   TELA: CONTAS
+══════════════════ */
+function vencLabel(venc) {
+  if (!venc) return '';
+  const d    = new Date(venc + 'T12:00');
+  const diff = Math.round((d - now) / (1000*3600*24));
+  const cls  = diff <= 1 ? 'urgent' : '';
+  if (diff < 0)  return `<div class="conta-venc ${cls}">Vencida em ${fmtDate(venc+'T12:00')}</div>`;
+  if (diff === 0) return `<div class="conta-venc ${cls}">Vence hoje</div>`;
+  if (diff === 1) return `<div class="conta-venc ${cls}">Vence amanhã</div>`;
+  return `<div class="conta-venc">Vence ${fmtDate(venc+'T12:00')}</div>`;
+}
+function renderContas() {
+  const pend = S.contas.filter(c=>!c.paid).sort((a,b)=>(a.venc||'z').localeCompare(b.venc||'z'));
+  const paid = S.contas.filter(c=> c.paid);
+  return `
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">Contas</div>
+      <button class="header-add" onclick="openAddConta()" aria-label="Nova conta"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="sec-label">Em aberto (${pend.length})</div>
+    <div class="item-list">
+      ${pend.length
+        ? pend.map(c=>`
+          <div class="conta-item">
+            <input type="checkbox" class="conta-check" onchange="toggleConta('${c.id}')" title="Marcar como paga" />
+            <div class="conta-body">
+              <div class="conta-name">${esc(c.name)}</div>
+              ${vencLabel(c.venc)}
+            </div>
+            ${c.val!=null ? `<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>` : ''}
+            <button class="item-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+          </div>`).join('')
+        : '<div class="empty">Nenhuma conta em aberto.</div>'}
+    </div>
+    ${paid.length ? `
+    <div class="sec-label" style="margin-top:10px;opacity:.6">Pagas (${paid.length})</div>
+    <div class="item-list">
+      ${paid.map(c=>`
+        <div class="conta-item conta-paga">
+          <input type="checkbox" class="conta-check" checked onchange="toggleConta('${c.id}')" />
+          <div class="conta-body">
+            <div class="conta-name">${esc(c.name)}</div>
+            ${vencLabel(c.venc)}
+          </div>
+          ${c.val!=null ? `<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>` : ''}
+          <button class="item-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+        </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+function openAddConta() {
+  showModal(`<div class="modal-title">Nova conta</div>
+    <input type="text"   id="m-cname" placeholder="Nome da conta"        />
+    <input type="number" id="m-cval"  placeholder="Valor (opcional)" step="0.01" min="0" />
+    <input type="date"   id="m-cvenc" />`,
+  () => {
+    const n = document.getElementById('m-cname').value.trim();
+    if (!n) return;
+    const v = document.getElementById('m-cval').value;
+    S.contas.push({
+      id:uid(), name:n,
+      val:  v ? parseFloat(v) : null,
+      venc: document.getElementById('m-cvenc').value || null,
+      paid: false
+    });
+    save(); if (S.notif) scheduleNotifs(); render();
+  });
+}
+function toggleConta(id) { const c=S.contas.find(x=>x.id===id); if(c){c.paid=!c.paid;save();render();} }
+
+/* ── Helpers globais ── */
+function delItem(arr,id) { S[arr]=S[arr].filter(x=>x.id!==id); save(); render(); }
+function go(screen) { V.screen=screen; V.sub=null; render(); }
+
+/* ── Render principal ── */
+function render() {
+  const map = {
+    home:   renderHome,
+    notas:  renderNotas,
+    pauta:  renderPauta,
+    agenda: renderAgenda,
+    treino: renderTreino,
+    contas: renderContas,
+  };
+  document.getElementById('app').innerHTML = (map[V.screen] || renderHome)();
+}
+
+render();
+if (S.notif && Notification.permission === 'granted') scheduleNotifs();
+</script>
+</body>
+</html>
