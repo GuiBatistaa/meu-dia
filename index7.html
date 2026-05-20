@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meu Dia" />
+  <meta name="theme-color" content="#f7f6f3" />
+  <title>Meu Dia</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #f7f6f3;
+      --surface:  #ffffff;
+      --surface2: #eeedea;
+      --border:   rgba(0,0,0,0.09);
+      --border2:  rgba(0,0,0,0.16);
+      --text:     #1c1c1a;
+      --text2:    #6a6a66;
+      --text3:    #a8a8a4;
+      --accent:   #1a4a5c;
+      --accent2:  #e8f2f6;
+      --accent3:  #c2dde8;
+      --amber:    #92600a;
+      --amber-bg: #fdf3e3;
+      --green:    #2d6a3f;
+      --green-bg: #e8f5ed;
+      --red:      #9b2c2c;
+      --red-bg:   #fdeaea;
+      --radius-md:9px;
+      --radius-lg:16px;
+      --safe-top: env(safe-area-inset-top,0px);
+      --safe-bot: env(safe-area-inset-bottom,0px);
+    }
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg:#1a1a18; --surface:#242422; --surface2:#2c2c2a;
+        --border:rgba(255,255,255,0.09); --border2:rgba(255,255,255,0.16);
+        --text:#f0efe8; --text2:#98988e; --text3:#5a5a56;
+        --accent:#4a9ab8; --accent2:#0e2c38; --accent3:#1a4a5c;
+        --amber:#e8a030; --amber-bg:#2a1e08;
+        --green:#5ab87a; --green-bg:#0e2a18;
+        --red:#e87070; --red-bg:#2a0e0e;
+      }
+    }
+    html,body { height:100%; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overscroll-behavior:none; }
+    #app { max-width:430px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; }
+
+    /* LOADING */
+    #loading { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:200; }
+    .spin { width:30px; height:30px; border:2.5px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #loading p { font-size:13px; color:var(--text3); }
+
+    /* LOGIN */
+    #login-screen { position:fixed; inset:0; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:40px 32px; z-index:150; }
+    .login-logo { width:56px; height:56px; background:var(--accent); border-radius:16px; display:flex; align-items:center; justify-content:center; }
+    .login-logo i { font-size:28px; color:#fff; }
+    .login-title { font-size:26px; font-weight:700; color:var(--text); letter-spacing:-0.5px; }
+    .login-sub { font-size:14px; color:var(--text2); text-align:center; line-height:1.65; max-width:260px; }
+    .btn-google { display:flex; align-items:center; gap:10px; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius-lg); padding:14px 24px; font-size:15px; font-weight:600; color:var(--text); cursor:pointer; font-family:inherit; width:100%; max-width:290px; justify-content:center; transition:background .12s; }
+    .btn-google:hover { background:var(--surface2); }
+    .btn-google img { width:20px; height:20px; }
+
+    /* HEADER */
+    .header { background:var(--surface); border-bottom:0.5px solid var(--border); padding:calc(12px + var(--safe-top)) 16px 0; position:sticky; top:0; z-index:20; }
+    .header-row { display:flex; align-items:center; gap:8px; padding-bottom:12px; }
+    .back-btn { background:none; border:0.5px solid var(--border2); border-radius:var(--radius-md); width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); flex-shrink:0; transition:background .12s; }
+    .back-btn:hover { background:var(--surface2); }
+    .header-title { font-size:17px; font-weight:700; color:var(--text); flex:1; letter-spacing:-0.3px; }
+    .header-add { background:var(--accent); border:none; border-radius:var(--radius-md); width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; transition:opacity .12s; }
+    .header-add:hover { opacity:.85; }
+    .user-pill { display:flex; align-items:center; gap:6px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:20px; padding:3px 10px 3px 3px; cursor:pointer; }
+    .user-avatar { width:24px; height:24px; border-radius:50%; object-fit:cover; }
+    .user-name { font-size:11px; color:var(--text2); max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+    .notif-pill { font-size:11px; padding:5px 10px; border-radius:20px; border:none; cursor:pointer; font-weight:600; transition:background .12s; }
+    .notif-pill.on  { background:var(--green-bg); color:var(--green); }
+    .notif-pill.off { background:var(--surface2); color:var(--text3); border:0.5px solid var(--border2); }
+
+    /* CONTENT */
+    .content { flex:1; padding:14px 16px calc(24px + var(--safe-bot)); display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+    .sec-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:2px; }
+
+    /* HOME */
+    .home-wrap { flex:1; padding:16px; }
+    .home-greeting { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.4px; margin-bottom:4px; }
+    .home-date { font-size:13px; color:var(--text2); margin-bottom:22px; }
+    .home-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .home-tile { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:20px 8px 15px; display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer; position:relative; transition:transform .1s,background .12s; -webkit-tap-highlight-color:transparent; }
+    .home-tile:active { transform:scale(0.93); }
+    .home-tile-icon { font-size:26px; color:var(--accent); }
+    .home-tile-label { font-size:11px; font-weight:600; color:var(--text2); text-align:center; line-height:1.3; }
+    .home-badge { position:absolute; top:8px; right:8px; min-width:18px; height:18px; border-radius:9px; background:var(--amber-bg); color:var(--amber); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 5px; border:0.5px solid rgba(146,96,10,0.2); }
+
+    /* ITEMS */
+    .item { display:flex; align-items:flex-start; gap:10px; padding:11px 13px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); }
+    .item-check { width:17px; height:17px; flex-shrink:0; margin-top:1px; cursor:pointer; accent-color:var(--accent); }
+    .item-body { flex:1; min-width:0; cursor:pointer; }
+    .item-text { font-size:14px; color:var(--text); word-break:break-word; line-height:1.4; }
+    .item-sub  { font-size:12px; color:var(--text2); margin-top:2px; }
+    .item-del  { background:none; border:none; color:var(--text3); cursor:pointer; font-size:15px; flex-shrink:0; padding:0 2px; }
+    .item-del:hover { color:var(--red); }
+    .item-list { display:flex; flex-direction:column; gap:5px; }
+    .done-item .item-text { text-decoration:line-through; opacity:.4; }
+    .done-item { opacity:.55; }
+    .empty { text-align:center; padding:32px 16px; color:var(--text3); font-size:13px; line-height:1.7; }
+
+    /* INLINE ADD (Pauta) */
+    .inline-add-btn { display:flex; align-items:center; gap:8px; padding:11px 13px; border-radius:var(--radius-md); border:1.5px dashed var(--accent3); background:var(--accent2); cursor:pointer; color:var(--accent); font-size:13px; font-weight:600; transition:background .12s; -webkit-tap-highlight-color:transparent; }
+    .inline-add-btn:hover { background:var(--accent3); }
+    .inline-add-btn i { font-size:16px; }
+    .inline-input-row { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--surface); border:1.5px solid var(--accent); border-radius:var(--radius-md); }
+    .inline-input-row input { flex:1; border:none; outline:none; font-size:14px; color:var(--text); background:transparent; font-family:inherit; }
+    .inline-confirm-btn { background:var(--accent); color:#fff; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; flex-shrink:0; }
+
+    /* EDIT INLINE (Pauta) */
+    .item-edit-row { display:flex; gap:6px; width:100%; }
+    .item-edit-row input { flex:1; border:none; border-bottom:1.5px solid var(--accent); outline:none; font-size:14px; color:var(--text); background:transparent; font-family:inherit; padding:2px 0; }
+    .item-edit-save { background:var(--accent); color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; flex-shrink:0; }
+    .item-edit-cancel { background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-family:inherit; flex-shrink:0; }
+
+    /* NOTES */
+    .note-row { display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .12s; }
+    .note-row:active { background:var(--surface2); }
+    .note-row-title { flex:1; font-size:14px; color:var(--text); font-weight:500; }
+    .note-row-date  { font-size:11px; color:var(--text3); flex-shrink:0; }
+    .note-detail { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:18px; }
+    .note-detail-title { font-size:17px; font-weight:700; color:var(--text); margin-bottom:12px; letter-spacing:-0.3px; }
+    .note-detail-text  { font-size:14px; color:var(--text2); white-space:pre-wrap; line-height:1.7; }
+    .note-detail-ts    { font-size:11px; color:var(--text3); margin-top:14px; }
+
+    /* AGENDA */
+    .week-block { margin-bottom:14px; }
+    .week-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:8px; }
+    .ag-item { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); overflow:hidden; }
+    .ag-item.today-ev { border-color:var(--accent); }
+    .ag-main { display:flex; align-items:flex-start; gap:10px; padding:11px 12px 8px; }
+    .ag-pill { background:var(--surface2); border-radius:8px; padding:6px 8px; text-align:center; flex-shrink:0; min-width:44px; }
+    .ag-pill.today-pill { background:var(--accent2); }
+    .ag-day   { font-size:18px; font-weight:700; color:var(--text); line-height:1; }
+    .ag-month { font-size:9px; text-transform:uppercase; color:var(--text2); margin-top:1px; font-weight:600; }
+    .today-pill .ag-day,.today-pill .ag-month { color:var(--accent); }
+    .ag-body { flex:1; min-width:0; }
+    .ag-time  { font-size:11px; color:var(--text3); font-weight:500; }
+    .ag-title { font-size:14px; color:var(--text); line-height:1.35; font-weight:500; }
+    .ag-desc  { font-size:12px; color:var(--text2); margin-top:2px; }
+    .ag-actions { display:flex; align-items:center; gap:6px; padding:0 12px 10px; }
+    .btn-gcal { display:flex; align-items:center; gap:5px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600; color:var(--text2); cursor:pointer; font-family:inherit; transition:background .12s; text-decoration:none; }
+    .btn-gcal:hover { background:var(--accent2); color:var(--accent); border-color:var(--accent3); }
+    .btn-gcal img { width:13px; height:13px; }
+    .ag-del { background:none; border:none; color:var(--text3); cursor:pointer; font-size:14px; margin-left:auto; padding:4px; }
+    .ag-del:hover { color:var(--red); }
+
+    /* TREINO */
+    .treino-tabs { display:flex; gap:8px; margin-bottom:4px; }
+    .treino-tab { flex:1; padding:10px 8px; border-radius:var(--radius-md); font-size:13px; font-weight:700; border:0.5px solid var(--border2); background:var(--surface); color:var(--text2); cursor:pointer; text-align:center; transition:all .12s; -webkit-tap-highlight-color:transparent; letter-spacing:.03em; }
+    .treino-tab.active { background:var(--accent); color:#fff; border-color:transparent; }
+    .group-label { font-size:11px; font-weight:700; color:var(--text2); margin:10px 0 5px; display:flex; align-items:center; gap:4px; text-transform:uppercase; letter-spacing:.06em; }
+    .ex-item { display:flex; align-items:center; gap:9px; padding:10px 12px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); margin-bottom:5px; }
+    .ex-check { width:17px; height:17px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
+    .ex-name  { flex:1; font-size:14px; color:var(--text); }
+    .ex-sets  { font-size:12px; color:var(--text2); flex-shrink:0; background:var(--surface2); padding:2px 7px; border-radius:5px; }
+    .ex-item.ex-done .ex-name { text-decoration:line-through; opacity:.4; }
+    .ex-item.ex-done { opacity:.55; }
+    .treino-status { font-size:13px; color:var(--text2); }
+    .treino-status strong { color:var(--text); font-weight:700; }
+
+    /* CONTAS */
+    .conta-item { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); overflow:hidden; }
+    .conta-main { display:flex; align-items:center; gap:9px; padding:11px 13px; }
+    .conta-check { width:17px; height:17px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
+    .conta-body  { flex:1; min-width:0; }
+    .conta-name  { font-size:14px; color:var(--text); font-weight:500; }
+    .conta-venc  { font-size:12px; color:var(--text2); margin-top:1px; }
+    .conta-venc.urgent { color:var(--amber); font-weight:600; }
+    .conta-venc.overdue { color:var(--red); font-weight:600; }
+    .conta-val   { font-size:14px; font-weight:700; color:var(--text); flex-shrink:0; }
+    .conta-recur { font-size:10px; background:var(--accent2); color:var(--accent); border-radius:4px; padding:2px 6px; font-weight:600; flex-shrink:0; }
+    .conta-item.conta-paga .conta-main { opacity:.5; }
+    .conta-item.conta-paga .conta-val { color:var(--green); }
+    .conta-del { background:none; border:none; color:var(--text3); cursor:pointer; font-size:14px; padding:2px 4px; }
+    .conta-del:hover { color:var(--red); }
+
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
+    .modal-box { background:var(--surface); border-radius:20px 20px 0 0; padding:20px 16px calc(18px + var(--safe-bot)); width:100%; max-width:430px; display:flex; flex-direction:column; gap:11px; animation:slideUp .22s ease; }
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 6px; }
+    .modal-title { font-size:16px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+    .modal-box input,.modal-box textarea { width:100%; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:11px 13px; font-size:14px; color:var(--text); font-family:inherit; outline:none; transition:border-color .15s; }
+    .modal-box input:focus,.modal-box textarea:focus { border-color:var(--accent); }
+    .modal-box textarea { min-height:90px; resize:vertical; }
+    .modal-row { display:flex; gap:8px; }
+    .modal-row input { flex:1; }
+    .modal-btns { display:flex; gap:8px; margin-top:2px; }
+    .btn-save { flex:1; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:13px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; letter-spacing:.01em; }
+    .btn-save:hover { opacity:.88; }
+    .btn-cancel { flex:1; background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:13px; font-size:14px; cursor:pointer; font-family:inherit; }
+    .modal-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 13px; background:var(--surface2); border-radius:var(--radius-md); }
+    .modal-toggle span { font-size:13px; color:var(--text2); }
+    .modal-toggle input[type=checkbox] { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; }
+
+    /* LOGOUT SHEET */
+    .logout-sheet { background:var(--surface); border-radius:20px 20px 0 0; padding:20px 16px calc(20px + var(--safe-bot)); width:100%; max-width:430px; animation:slideUp .22s ease; }
+    .logout-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 16px; }
+    .logout-user { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:12px; background:var(--surface2); border-radius:var(--radius-md); }
+    .logout-avatar { width:42px; height:42px; border-radius:50%; object-fit:cover; }
+    .logout-name { font-size:15px; font-weight:700; color:var(--text); }
+    .logout-email { font-size:12px; color:var(--text2); margin-top:1px; }
+    .btn-logout { width:100%; background:var(--red-bg); color:var(--red); border:0.5px solid rgba(155,44,44,0.2); border-radius:var(--radius-md); padding:13px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .btn-close-sheet { width:100%; background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:12px; font-size:14px; cursor:pointer; font-family:inherit; margin-top:8px; }
+  </style>
+</head>
+<body>
+<div id="loading"><div class="spin"></div><p>Carregando...</p></div>
+<div id="login-screen">
+  <div class="login-logo"><i class="ti ti-calendar-check" aria-hidden="true"></i></div>
+  <div class="login-title">Meu Dia</div>
+  <div class="login-sub">Entre com sua conta Google para acessar seus dados em qualquer dispositivo.</div>
+  <button class="btn-google" onclick="signInGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+    Entrar com Google
+  </button>
+</div>
+<div id="app"></div>
+
+<script type="module">
+import { initializeApp }                                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, onSnapshot }                           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAHF4k_6HHxqjXiF6H0GOaKgYhCLC5GFiY",
+  authDomain:        "meu-dia-9a3d1.firebaseapp.com",
+  projectId:         "meu-dia-9a3d1",
+  storageBucket:     "meu-dia-9a3d1.firebasestorage.app",
+  messagingSenderId: "790189649870",
+  appId:             "1:790189649870:web:2ce97ea95f49e518a2c59f"
+};
+
+const fbApp    = initializeApp(firebaseConfig);
+const db       = getFirestore(fbApp);
+const auth     = getAuth(fbApp);
+const provider = new GoogleAuthProvider();
+
+const DAYS   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const now    = new Date();
+const DEFAULT = { notes:[], pauta:[], agenda:[], treino:{A:[],B:[],C:[]}, contas:[], notif:false };
+
+let S = {...DEFAULT}, V = {screen:'home', sub:null, treinoTab:'A', editPautaId:null, showInlineAdd:false};
+let currentUser=null, unsubSnap=null, saving=false;
+
+/* ── AUTH ── */
+window.signInGoogle = async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { alert('Erro ao entrar: '+e.message); }
+};
+window.signOutUser = async () => {
+  closeModal();
+  if(unsubSnap){unsubSnap();unsubSnap=null;}
+  await signOut(auth);
+  S={...DEFAULT}; V={screen:'home',sub:null,treinoTab:'A',editPautaId:null,showInlineAdd:false};
+  currentUser=null;
+  document.getElementById('app').innerHTML='';
+  document.getElementById('login-screen').style.display='flex';
+};
+
+onAuthStateChanged(auth, user => {
+  document.getElementById('loading').style.display='none';
+  if(user){ currentUser=user; document.getElementById('login-screen').style.display='none'; startSync(user.uid); }
+  else { if(unsubSnap){unsubSnap();unsubSnap=null;} document.getElementById('login-screen').style.display='flex'; document.getElementById('app').innerHTML=''; }
+});
+
+function startSync(uid){
+  if(unsubSnap)unsubSnap();
+  const ref=doc(db,'usuarios',uid);
+  unsubSnap=onSnapshot(ref, snap=>{
+    if(snap.exists()) S={...DEFAULT,...snap.data(), treino:{A:[],B:[],C:[],...(snap.data().treino||{})}};
+    else S={...DEFAULT};
+    render();
+  }, err=>{console.error(err);render();});
+}
+
+async function save(){
+  if(!currentUser||saving)return; saving=true;
+  try{await setDoc(doc(db,'usuarios',currentUser.uid),S);}catch(e){console.error(e);}
+  saving=false;
+}
+
+/* ── UTILS ── */
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(iso){if(!iso)return'';const d=new Date(iso.includes('T')?iso:iso+'T12:00');return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});}
+function fmtTime(iso){if(!iso)return'';return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fmtFull(iso){if(!iso)return'';return fmtDate(iso)+' '+fmtTime(iso);}
+
+function badge(sec){
+  if(sec==='pauta')  return (S.pauta||[]).filter(p=>!p.done).length;
+  if(sec==='contas') return (S.contas||[]).filter(c=>!c.paid).length;
+  if(sec==='agenda') return (S.agenda||[]).filter(a=>new Date(a.dt)>=now).length;
+  if(sec==='treino'){
+    const all=[...(S.treino?.A||[]),...(S.treino?.B||[]),...(S.treino?.C||[])];
+    return all.filter(e=>!e.done).length;
+  }
+  return 0;
+}
+
+/* ── NOTIF ── */
+window.toggleNotif = async()=>{
+  if(!('Notification'in window)){alert('Não suportado.');return;}
+  if(S.notif){S.notif=false;save();render();return;}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){S.notif=true;save();render();new Notification('Meu Dia',{body:'Notificações ativas!'});}
+  else alert('Permissão negada nas configurações do Safari.');
+};
+
+/* ── MODAL ── */
+function showModal(html,onSave){
+  closeModal();
+  const el=document.createElement('div');
+  el.id='modal';el.className='modal-overlay';
+  el.innerHTML=`<div class="modal-box"><div class="modal-handle"></div>${html}<div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancelar</button><button class="btn-save" onclick="_mSave()">Salvar</button></div></div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',e=>{if(e.target===el)closeModal();});
+  window._mSave=()=>{onSave();closeModal();};
+  setTimeout(()=>{const i=el.querySelector('input,textarea');if(i)i.focus();},80);
+}
+window.closeModal=()=>{const el=document.getElementById('modal');if(el)el.remove();};
+
+window.showUserSheet=()=>{
+  closeModal();
+  const u=currentUser;
+  const el=document.createElement('div');
+  el.id='modal';el.className='modal-overlay';
+  el.innerHTML=`<div class="logout-sheet">
+    <div class="logout-handle"></div>
+    <div class="logout-user">
+      ${u.photoURL?`<img class="logout-avatar" src="${u.photoURL}" alt="" />`:'<div class="logout-avatar" style="background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent)"><i class="ti ti-user"></i></div>'}
+      <div><div class="logout-name">${esc(u.displayName||'Usuário')}</div><div class="logout-email">${esc(u.email||'')}</div></div>
+    </div>
+    <button class="btn-logout" onclick="signOutUser()"><i class="ti ti-logout" aria-hidden="true"></i> Sair da conta</button>
+    <button class="btn-close-sheet" onclick="closeModal()">Cancelar</button>
+  </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',e=>{if(e.target===el)closeModal();});
+};
+
+/* ══════════ HOME ══════════ */
+const SECTIONS=[
+  {id:'pauta', icon:'ti-list-check',label:'Pauta'},
+  {id:'agenda',icon:'ti-calendar',  label:'Agenda'},
+  {id:'treino',icon:'ti-barbell',   label:'Treino'},
+  {id:'contas',icon:'ti-wallet',    label:'Contas'},
+  {id:'notas', icon:'ti-note',      label:'Notas'},
+];
+function renderHome(){
+  const u=currentUser;
+  const firstName=(u?.displayName||'').split(' ')[0]||'';
+  const tiles=SECTIONS.map(s=>{
+    const b=badge(s.id);
+    return`<div class="home-tile" onclick="go('${s.id}')">
+      ${b?`<div class="home-badge">${b}</div>`:''}
+      <i class="ti ${s.icon} home-tile-icon" aria-hidden="true"></i>
+      <span class="home-tile-label">${s.label}</span>
+    </div>`;
+  }).join('');
+  const avatar=u?.photoURL?`<img class="user-avatar" src="${u.photoURL}" alt="" />`:`<i class="ti ti-user" style="font-size:14px;padding:3px;color:var(--text2)"></i>`;
+  return`<div class="header"><div class="header-row">
+    <div class="header-title">Meu Dia</div>
+    <button class="notif-pill ${S.notif?'on':'off'}" onclick="toggleNotif()"><i class="ti ti-bell" aria-hidden="true"></i> ${S.notif?'Ativo':'Notif.'}</button>
+    <div class="user-pill" onclick="showUserSheet()">${avatar}<span class="user-name">${esc(firstName)}</span></div>
+  </div></div>
+  <div class="home-wrap">
+    <div class="home-greeting">Olá, ${esc(firstName)||'seja bem-vindo'} 👋</div>
+    <div class="home-date">${now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="home-grid">${tiles}</div>
+  </div>`;
+}
+
+/* ══════════ NOTAS ══════════ */
+function renderNotas(){
+  if(V.sub?.type==='nota'){
+    const n=(S.notes||[]).find(x=>x.id===V.sub.id);
+    if(n)return`<div class="header"><div class="header-row">
+      <button class="back-btn" onclick="closeNota()"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title">${esc(n.title)}</div>
+      <button class="header-add" onclick="delNota('${n.id}')" style="background:var(--red-bg);"><i class="ti ti-trash" style="color:var(--red)" aria-hidden="true"></i></button>
+    </div></div>
+    <div class="content"><div class="note-detail">
+      <div class="note-detail-title">${esc(n.title)}</div>
+      <div class="note-detail-text">${esc(n.text)}</div>
+      <div class="note-detail-ts">${fmtFull(n.ts)}</div>
+    </div></div>`;
+  }
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Notas</div>
+    <button class="header-add" onclick="openAddNota()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content"><div class="item-list">
+    ${(S.notes||[]).length?(S.notes||[]).slice().reverse().map(n=>`
+    <div class="note-row" onclick="openNota('${n.id}')">
+      <div class="note-row-title">${esc(n.title)}</div>
+      <div class="note-row-date">${fmtDate(n.ts)}</div>
+      <i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i>
+    </div>`).join(''):'<div class="empty">Nenhuma nota ainda.<br>Use o <strong>+</strong> para criar.</div>'}
+  </div></div>`;
+}
+window.openAddNota=()=>showModal(`<div class="modal-title">Nova nota</div><input type="text" id="m-ntitle" placeholder="Título" /><textarea id="m-ntext" placeholder="Conteúdo..."></textarea>`,()=>{
+  const t=document.getElementById('m-ntitle').value.trim(),x=document.getElementById('m-ntext').value.trim();
+  if(!t&&!x)return; if(!S.notes)S.notes=[];
+  S.notes.push({id:uid(),title:t||'Sem título',text:x,ts:new Date().toISOString()});save();render();
+});
+window.openNota=(id)=>{V.sub={type:'nota',id};render();};
+window.closeNota=()=>{V.sub=null;render();};
+window.delNota=(id)=>{S.notes=(S.notes||[]).filter(x=>x.id!==id);V.sub=null;save();render();};
+
+/* ══════════ PAUTA ══════════ */
+function renderPauta(){
+  const pend=(S.pauta||[]).filter(p=>!p.done);
+  const done=(S.pauta||[]).filter(p=>p.done);
+  const editId=V.editPautaId;
+
+  function itemHTML(p){
+    if(editId===p.id){
+      return`<div class="item" data-id="${p.id}">
+        <div class="item-body">
+          <div class="item-edit-row">
+            <input type="text" id="edit-${p.id}" value="${esc(p.title)}" onkeydown="if(event.key==='Enter')savePautaEdit('${p.id}')" />
+            <button class="item-edit-save" onclick="savePautaEdit('${p.id}')">OK</button>
+            <button class="item-edit-cancel" onclick="cancelEditPauta()">✕</button>
+          </div>
+          ${p.desc?`<div class="item-sub" style="margin-top:4px">${esc(p.desc)}</div>`:''}
+        </div>
+      </div>`;
+    }
+    return`<div class="item${p.done?' done-item':''}" data-id="${p.id}" draggable="${!p.done}" 
+      ondragstart="dragStart(event,'${p.id}')" ondragover="dragOver(event)" ondrop="dragDrop(event,'${p.id}')" ondragend="dragEnd(event)">
+      <i class="ti ti-grip-vertical" style="font-size:16px;color:var(--text3);cursor:grab;flex-shrink:0;${p.done?'opacity:0.3':''}" aria-hidden="true"></i>
+      <input type="checkbox" class="item-check" ${p.done?'checked':''} onchange="togglePauta('${p.id}')" />
+      <div class="item-body" onclick="${!p.done?`startEditPauta('${p.id}')`:''}" title="${!p.done?'Clique para editar':''}">
+        <div class="item-text">${esc(p.title)}</div>
+        ${p.desc?`<div class="item-sub">${esc(p.desc)}</div>`:''}
+      </div>
+      <button class="item-del" onclick="delItem('pauta','${p.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>`;
+  }
+
+  const inlineAdd = `<div id="inline-add-wrap">
+    <div class="inline-add-btn" id="inline-add-trigger" onclick="showInlinePauta()">
+      <i class="ti ti-plus" aria-hidden="true"></i> Incluir nova tarefa
+    </div>
+    <div class="inline-input-row" id="inline-input-row" style="display:none">
+      <input type="text" id="inline-pauta-input" placeholder="Nome da tarefa..."
+        onkeydown="if(event.key==='Enter')submitInlinePauta();if(event.key==='Escape')hideInlinePauta();" />
+      <button class="inline-confirm-btn" onclick="submitInlinePauta()">Adicionar</button>
+    </div>
+  </div>`;
+
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Pauta</div>
+    <div style="width:34px"></div>
+  </div></div>
+  <div class="content">
+    <div class="sec-label">Pendentes (${pend.length})</div>
+    <div class="item-list" id="pauta-list">
+      ${pend.length?pend.map(itemHTML).join(''):''}
+      ${inlineAdd}
+    </div>
+    ${done.length?`<div class="sec-label" style="margin-top:10px;opacity:.6">Concluídas (${done.length})</div>
+    <div class="item-list">${done.map(itemHTML).join('')}</div>`:''}
+  </div>`;
+}
+window.startEditPauta=(id)=>{V.editPautaId=id;render();setTimeout(()=>{const el=document.getElementById('edit-'+id);if(el){el.focus();el.select();}},60);};
+window.savePautaEdit=(id)=>{
+  const el=document.getElementById('edit-'+id);
+  if(!el)return;
+  const val=el.value.trim();
+  if(val){const p=(S.pauta||[]).find(x=>x.id===id);if(p)p.title=val;save();}
+  V.editPautaId=null;render();
+};
+window.showInlinePauta=()=>{
+  const trigger=document.getElementById('inline-add-trigger');
+  const row=document.getElementById('inline-input-row');
+  if(trigger)trigger.style.display='none';
+  if(row)row.style.display='flex';
+  const inp=document.getElementById('inline-pauta-input');
+  if(inp){inp.focus();}
+};
+window.hideInlinePauta=()=>{
+  const trigger=document.getElementById('inline-add-trigger');
+  const row=document.getElementById('inline-input-row');
+  if(trigger)trigger.style.display='flex';
+  if(row)row.style.display='none';
+  const inp=document.getElementById('inline-pauta-input');
+  if(inp)inp.value='';
+};
+window.submitInlinePauta=()=>{
+  const el=document.getElementById('inline-pauta-input');
+  if(!el)return;
+  const t=el.value.trim();
+  if(!t){hideInlinePauta();return;}
+  if(!S.pauta)S.pauta=[];
+  S.pauta.push({id:uid(),title:t,desc:'',done:false});
+  save();render();
+};
+window.togglePauta=(id)=>{const p=(S.pauta||[]).find(x=>x.id===id);if(p){p.done=!p.done;save();render();}};
+window.cancelEditPauta=()=>{V.editPautaId=null;render();};
+
+/* ── Drag & Drop Pauta ── */
+let _dragId=null, _dragOver=null;
+window.dragStart=(e,id)=>{
+  _dragId=id;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{if(e.target)e.target.style.opacity='0.4';},0);
+};
+window.dragOver=(e,id)=>{
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  const el=e.currentTarget;
+  if(_dragOver&&_dragOver!==el){_dragOver.style.borderTop='';}
+  _dragOver=el;
+  el.style.borderTop='2px solid var(--accent)';
+};
+window.dragDrop=(e,targetId)=>{
+  e.preventDefault();
+  if(!_dragId||_dragId===targetId)return;
+  const pauta=S.pauta||[];
+  const fromIdx=pauta.findIndex(x=>x.id===_dragId);
+  const toIdx=pauta.findIndex(x=>x.id===targetId);
+  if(fromIdx===-1||toIdx===-1)return;
+  const [moved]=pauta.splice(fromIdx,1);
+  pauta.splice(toIdx,0,moved);
+  S.pauta=pauta;
+  save();render();
+};
+window.dragEnd=(e)=>{
+  if(e.target)e.target.style.opacity='';
+  if(_dragOver){_dragOver.style.borderTop='';_dragOver=null;}
+  _dragId=null;
+};
+
+/* ══════════ AGENDA ══════════ */
+function gcalUrl(a){
+  const d=new Date(a.dt);
+  function pad(n){return String(n).padStart(2,'0');}
+  const start=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const end=new Date(d.getTime()+60*60000);
+  const endStr=`${end.getFullYear()}${pad(end.getMonth()+1)}${pad(end.getDate())}T${pad(end.getHours())}${pad(end.getMinutes())}00`;
+  const details=encodeURIComponent(a.desc||'');
+  const title=encodeURIComponent(a.title||'Compromisso');
+  return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${endStr}&details=${details}`;
+}
+function weekStart(dt){const d=new Date(dt),dow=d.getDay();d.setDate(d.getDate()-(dow===0?6:dow-1));return d.toISOString().slice(0,10);}
+function weekRangeLabel(k){const m=new Date(k+'T12:00'),s=new Date(m);s.setDate(m.getDate()+6);return`${m.getDate()} ${MONTHS[m.getMonth()]} — ${s.getDate()} ${MONTHS[s.getMonth()]}`;}
+
+function renderAgenda(){
+  const future=(S.agenda||[]).filter(a=>new Date(a.dt)>=now).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  const weeks={};future.forEach(a=>{const k=weekStart(a.dt);if(!weeks[k])weeks[k]=[];weeks[k].push(a);});
+  const wkeys=Object.keys(weeks).sort();
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Agenda</div>
+    <button class="header-add" onclick="openAddAgenda()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">${wkeys.length?wkeys.map(k=>`
+    <div class="week-block">
+      <div class="week-label">Semana ${weekRangeLabel(k)}</div>
+      <div class="item-list">${weeks[k].map(a=>{
+        const d=new Date(a.dt),isToday=d.toDateString()===now.toDateString();
+        return`<div class="ag-item${isToday?' today-ev':''}">
+          <div class="ag-main">
+            <div class="ag-pill${isToday?' today-pill':''}">
+              <div class="ag-day">${String(d.getDate()).padStart(2,'0')}</div>
+              <div class="ag-month">${MONTHS[d.getMonth()]}</div>
+            </div>
+            <div class="ag-body">
+              <div class="ag-time">${DAYS[d.getDay()]}${a.time?' · '+a.time:''}</div>
+              <div class="ag-title">${esc(a.title)}</div>
+              ${a.desc?`<div class="ag-desc">${esc(a.desc)}</div>`:''}
+            </div>
+            <button class="ag-del" onclick="delItem('agenda','${a.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+          </div>
+          <div class="ag-actions">
+            <a class="btn-gcal" href="${gcalUrl(a)}" target="_blank" rel="noopener">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" />
+              Adicionar ao Google Agenda
+            </a>
+          </div>
+        </div>`;}).join('')}</div>
+    </div>`).join(''):'<div class="empty">Nenhum compromisso futuro.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+window.openAddAgenda=()=>showModal(`<div class="modal-title">Novo compromisso</div>
+  <input type="text" id="m-atitle" placeholder="Título do compromisso" />
+  <input type="text" id="m-adesc"  placeholder="Local / descrição (opcional)" />
+  <div class="modal-row"><input type="date" id="m-adt" /><input type="time" id="m-atime" /></div>`,()=>{
+  const t=document.getElementById('m-atitle').value.trim(),dt=document.getElementById('m-adt').value;
+  if(!t||!dt)return; const time=document.getElementById('m-atime').value;
+  if(!S.agenda)S.agenda=[];
+  S.agenda.push({id:uid(),title:t,desc:document.getElementById('m-adesc').value.trim(),dt:dt+'T'+(time||'00:00'),time:time||null});
+  save();render();
+});
+
+/* ══════════ TREINO ══════════ */
+function renderTreino(){
+  const tab=V.treinoTab;
+  const exs=(S.treino?.[tab])||[];
+  const done=exs.filter(e=>e.done).length;
+  const groups={};exs.forEach(e=>{const g=e.group||'Geral';if(!groups[g])groups[g]=[];groups[g].push(e);});
+  const tabs=['A','B','C'].map(t=>`<div class="treino-tab${tab===t?' active':''}" onclick="setTreinoTab('${t}')">Treino ${t}</div>`).join('');
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Treino</div>
+    <button class="header-add" onclick="openAddEx()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">
+    <div class="treino-tabs">${tabs}</div>
+    <div class="treino-status">${exs.length?`<strong>${done} de ${exs.length}</strong> exercícios concluídos`:'Nenhum exercício cadastrado'}</div>
+    ${Object.keys(groups).length?Object.keys(groups).map(g=>`
+    <div class="group-label"><i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>${esc(g)} <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(${groups[g].filter(e=>e.done).length}/${groups[g].length})</span></div>
+    ${groups[g].map(e=>`<div class="ex-item${e.done?' ex-done':''}">
+      <input type="checkbox" class="ex-check" ${e.done?'checked':''} onchange="toggleEx('${tab}','${e.id}')" />
+      <div class="ex-name">${esc(e.name)}</div>
+      ${e.sets?`<div class="ex-sets">${esc(e.sets)}</div>`:''}
+      <button class="item-del" onclick="delEx('${tab}','${e.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>`).join('')}`).join(''):'<div class="empty">Nenhum exercício neste treino.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+window.setTreinoTab=(t)=>{V.treinoTab=t;render();};
+window.openAddEx=()=>{const tab=V.treinoTab;showModal(`<div class="modal-title">Exercício — Treino ${tab}</div>
+  <input type="text" id="m-exname"  placeholder="Nome do exercício" />
+  <input type="text" id="m-exsets"  placeholder="Séries / reps (ex: 4×12)" />
+  <input type="text" id="m-exgroup" placeholder="Grupo muscular (ex: Peito)" />`,()=>{
+  const n=document.getElementById('m-exname').value.trim(); if(!n)return;
+  if(!S.treino)S.treino={A:[],B:[],C:[]};
+  if(!S.treino[tab])S.treino[tab]=[];
+  S.treino[tab].push({id:uid(),name:n,sets:document.getElementById('m-exsets').value.trim(),group:document.getElementById('m-exgroup').value.trim()||'Geral',done:false});
+  save();render();});};
+window.toggleEx=(tab,id)=>{const e=(S.treino?.[tab]||[]).find(x=>x.id===id);if(e){e.done=!e.done;save();render();}};
+window.delEx=(tab,id)=>{if(S.treino?.[tab])S.treino[tab]=S.treino[tab].filter(x=>x.id!==id);save();render();};
+
+/* ══════════ CONTAS ══════════ */
+function nextVenc(dia){
+  if(!dia)return null;
+  const d=parseInt(dia);
+  const t=new Date();
+  let year=t.getFullYear(),month=t.getMonth();
+  const candidate=new Date(year,month,d);
+  if(candidate<t) candidate.setMonth(candidate.getMonth()+1);
+  return`${candidate.getFullYear()}-${String(candidate.getMonth()+1).padStart(2,'0')}-${String(candidate.getDate()).padStart(2,'0')}`;
+}
+function vencLabel(c){
+  const venc=c.recorrente?nextVenc(c.dia):c.venc;
+  if(!venc)return'';
+  const d=new Date(venc+'T12:00'),diff=Math.round((d-now)/(1000*3600*24));
+  if(diff<0) return`<div class="conta-venc overdue">Vencida — ${fmtDate(venc+'T12:00')}</div>`;
+  if(diff===0)return`<div class="conta-venc urgent">Vence hoje</div>`;
+  if(diff===1)return`<div class="conta-venc urgent">Vence amanhã</div>`;
+  if(diff<=5) return`<div class="conta-venc urgent">Vence em ${diff} dias — ${fmtDate(venc+'T12:00')}</div>`;
+  return`<div class="conta-venc">Vence ${fmtDate(venc+'T12:00')}</div>`;
+}
+function renderContas(){
+  const pend=(S.contas||[]).filter(c=>!c.paid).sort((a,b)=>{
+    const va=a.recorrente?nextVenc(a.dia):a.venc||'z';
+    const vb=b.recorrente?nextVenc(b.dia):b.venc||'z';
+    return va.localeCompare(vb);
+  });
+  const paid=(S.contas||[]).filter(c=>c.paid);
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Contas</div>
+    <button class="header-add" onclick="openAddConta()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">
+    <div class="sec-label">Em aberto (${pend.length})</div>
+    <div class="item-list">${pend.length?pend.map(c=>`
+      <div class="conta-item">
+        <div class="conta-main">
+          <input type="checkbox" class="conta-check" onchange="toggleConta('${c.id}')" title="Marcar como paga" />
+          <div class="conta-body">
+            <div class="conta-name">${esc(c.name)}</div>
+            ${vencLabel(c)}
+          </div>
+          ${c.recorrente?`<span class="conta-recur">Recorrente</span>`:''}
+          ${c.val!=null?`<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>`:''}
+          <button class="conta-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+        </div>
+      </div>`).join(''):'<div class="empty">Sem contas em aberto.</div>'}
+    </div>
+    ${paid.length?`<div class="sec-label" style="margin-top:12px;opacity:.6">Pagas (${paid.length})</div>
+    <div class="item-list">${paid.map(c=>`<div class="conta-item conta-paga">
+      <div class="conta-main">
+        <input type="checkbox" class="conta-check" checked onchange="toggleConta('${c.id}')" />
+        <div class="conta-body"><div class="conta-name">${esc(c.name)}</div>${vencLabel(c)}</div>
+        ${c.recorrente?`<span class="conta-recur">Recorrente</span>`:''}
+        ${c.val!=null?`<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>`:''}
+        <button class="conta-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+    </div>`).join('')}</div>`:''}
+  </div>`;
+}
+window.openAddConta=()=>showModal(`<div class="modal-title">Nova conta</div>
+  <input type="text"   id="m-cname"  placeholder="Nome da conta" />
+  <input type="number" id="m-cval"   placeholder="Valor (opcional)" step="0.01" min="0" />
+  <div class="modal-toggle">
+    <span>Conta recorrente (todo mês)</span>
+    <input type="checkbox" id="m-crecur" onchange="toggleRecurUI()" />
+  </div>
+  <div id="recur-fields" style="display:none">
+    <input type="number" id="m-cdia" placeholder="Dia do vencimento (ex: 10)" min="1" max="31" />
+  </div>
+  <div id="onetime-fields">
+    <input type="date" id="m-cvenc" />
+  </div>`,()=>{
+  const n=document.getElementById('m-cname').value.trim(); if(!n)return;
+  const v=document.getElementById('m-cval').value;
+  const recur=document.getElementById('m-crecur').checked;
+  if(!S.contas)S.contas=[];
+  if(recur){
+    const dia=document.getElementById('m-cdia').value;
+    S.contas.push({id:uid(),name:n,val:v?parseFloat(v):null,recorrente:true,dia:dia||null,paid:false});
+  } else {
+    S.contas.push({id:uid(),name:n,val:v?parseFloat(v):null,recorrente:false,venc:document.getElementById('m-cvenc').value||null,paid:false});
+  }
+  save();render();
+});
+window.toggleRecurUI=()=>{
+  const r=document.getElementById('m-crecur').checked;
+  document.getElementById('recur-fields').style.display=r?'block':'none';
+  document.getElementById('onetime-fields').style.display=r?'none':'block';
+};
+window.toggleConta=(id)=>{
+  const c=(S.contas||[]).find(x=>x.id===id);
+  if(!c)return;
+  if(c.recorrente&&c.paid){c.paid=false;}
+  else{c.paid=!c.paid;}
+  save();render();
+};
+
+/* ── HELPERS ── */
+window.delItem=(arr,id)=>{S[arr]=(S[arr]||[]).filter(x=>x.id!==id);save();render();};
+window.go=(screen)=>{V.screen=screen;V.sub=null;V.editPautaId=null;V.showInlineAdd=false;render();};
+
+function render(){
+  const map={home:renderHome,notas:renderNotas,pauta:renderPauta,agenda:renderAgenda,treino:renderTreino,contas:renderContas};
+  document.getElementById('app').innerHTML=(map[V.screen]||renderHome)();
+
+}
+window.render=render;
+</script>
+</body>
+</html>
