@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meu Dia" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Meu Dia</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#f5f5f3; --surface:#ffffff; --surface2:#f0efea;
+      --border:rgba(0,0,0,0.10); --border2:rgba(0,0,0,0.18);
+      --text:#1a1a18; --text2:#6b6b67; --text3:#a0a09c; --accent:#1a1a18;
+      --blue-bg:#e6f1fb; --blue-txt:#185fa5;
+      --green-bg:#eaf3de; --green-txt:#3b6d11;
+      --red-bg:#fcebeb; --red-txt:#a32d2d;
+      --radius-md:8px; --radius-lg:14px;
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bot:env(safe-area-inset-bottom,0px);
+    }
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg:#1c1c1a; --surface:#252522; --surface2:#2e2e2b;
+        --border:rgba(255,255,255,0.10); --border2:rgba(255,255,255,0.18);
+        --text:#f0efe8; --text2:#9a9992; --text3:#5c5c58; --accent:#f0efe8;
+        --blue-bg:#0c2a45; --blue-txt:#85b7eb;
+        --green-bg:#172c09; --green-txt:#97c459;
+        --red-bg:#300f0f; --red-txt:#f09595;
+      }
+    }
+    html,body { height:100%; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overscroll-behavior:none; }
+    #app { max-width:430px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); }
+
+    /* LOADING */
+    #loading { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; z-index:200; }
+    .spin { width:28px; height:28px; border:2.5px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    #loading p { font-size:13px; color:var(--text2); }
+
+    /* LOGIN */
+    #login-screen { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:32px; z-index:150; }
+    .login-icon { font-size:48px; color:var(--text); }
+    .login-title { font-size:24px; font-weight:700; color:var(--text); }
+    .login-sub { font-size:14px; color:var(--text2); text-align:center; line-height:1.6; }
+    .btn-google { display:flex; align-items:center; gap:10px; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius-lg); padding:14px 24px; font-size:15px; font-weight:600; color:var(--text); cursor:pointer; transition:background 0.12s; font-family:inherit; width:100%; max-width:280px; justify-content:center; }
+    .btn-google:hover { background:var(--surface2); }
+    .btn-google img { width:20px; height:20px; }
+
+    /* HEADER */
+    .header { background:var(--surface); border-bottom:0.5px solid var(--border); padding:calc(14px + var(--safe-top)) 16px 0; position:sticky; top:0; z-index:20; }
+    .header-row { display:flex; align-items:center; gap:10px; padding-bottom:14px; }
+    .back-btn { background:none; border:0.5px solid var(--border2); border-radius:var(--radius-md); width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); flex-shrink:0; }
+    .back-btn:hover { background:var(--surface2); }
+    .header-title { font-size:16px; font-weight:600; color:var(--text); flex:1; }
+    .header-add { background:none; border:0.5px solid var(--border2); border-radius:var(--radius-md); width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); }
+    .header-add:hover { background:var(--surface2); }
+    .user-pill { display:flex; align-items:center; gap:6px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:20px; padding:4px 10px 4px 4px; cursor:pointer; }
+    .user-avatar { width:22px; height:22px; border-radius:50%; object-fit:cover; }
+    .user-name { font-size:11px; color:var(--text2); max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .notif-pill { font-size:11px; padding:4px 10px; border-radius:20px; border:none; cursor:pointer; font-weight:500; }
+    .notif-pill.on  { background:var(--green-bg); color:var(--green-txt); }
+    .notif-pill.off { background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); }
+
+    /* CONTENT */
+    .content { flex:1; padding:14px 16px calc(20px + var(--safe-bot)); display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+    .sec-label { font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text3); margin-bottom:2px; }
+
+    /* HOME */
+    .home-wrap { flex:1; padding:16px; }
+    .home-date { font-size:13px; color:var(--text2); margin-bottom:20px; line-height:1.5; }
+    .home-date strong { font-weight:600; color:var(--text); }
+    .home-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .home-tile { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:18px 8px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; position:relative; transition:transform 0.1s,background 0.12s; -webkit-tap-highlight-color:transparent; }
+    .home-tile:active { transform:scale(0.94); background:var(--surface2); }
+    .home-tile-icon { font-size:28px; color:var(--text); }
+    .home-tile-label { font-size:12px; color:var(--text2); text-align:center; line-height:1.3; }
+    .home-badge { position:absolute; top:8px; right:8px; min-width:18px; height:18px; border-radius:9px; background:var(--red-bg); color:var(--red-txt); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+    /* ITEMS */
+    .item { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); }
+    .item-check { width:17px; height:17px; flex-shrink:0; margin-top:1px; cursor:pointer; accent-color:var(--accent); }
+    .item-body { flex:1; min-width:0; }
+    .item-text { font-size:14px; color:var(--text); word-break:break-word; line-height:1.4; }
+    .item-sub  { font-size:12px; color:var(--text2); margin-top:2px; }
+    .item-del  { background:none; border:none; color:var(--text3); cursor:pointer; font-size:15px; flex-shrink:0; padding:0 2px; }
+    .item-del:hover { color:var(--red-txt); }
+    .item-list { display:flex; flex-direction:column; gap:5px; }
+    .done-item .item-text { text-decoration:line-through; opacity:.45; }
+    .done-item { opacity:.6; }
+    .empty { text-align:center; padding:32px 16px; color:var(--text3); font-size:13px; line-height:1.6; }
+
+    /* NOTES */
+    .note-row { display:flex; align-items:center; gap:10px; padding:11px 13px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .note-row:active { background:var(--surface2); }
+    .note-row-title { flex:1; font-size:14px; color:var(--text); }
+    .note-row-date  { font-size:11px; color:var(--text3); flex-shrink:0; }
+    .note-detail { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:16px; }
+    .note-detail-title { font-size:16px; font-weight:600; color:var(--text); margin-bottom:10px; }
+    .note-detail-text  { font-size:14px; color:var(--text2); white-space:pre-wrap; line-height:1.65; }
+    .note-detail-ts    { font-size:11px; color:var(--text3); margin-top:12px; }
+
+    /* AGENDA */
+    .week-block { margin-bottom:14px; }
+    .week-label { font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+    .ag-item { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); }
+    .ag-item.today-ev { border-color:var(--blue-txt); }
+    .ag-pill { background:var(--surface2); border-radius:var(--radius-md); padding:5px 8px; text-align:center; flex-shrink:0; min-width:44px; }
+    .ag-pill.today-pill { background:var(--blue-bg); }
+    .ag-day   { font-size:17px; font-weight:600; color:var(--text); line-height:1; }
+    .ag-month { font-size:9px; text-transform:uppercase; color:var(--text2); margin-top:1px; }
+    .today-pill .ag-day,.today-pill .ag-month { color:var(--blue-txt); }
+    .ag-body { flex:1; min-width:0; }
+    .ag-time  { font-size:11px; color:var(--text3); }
+    .ag-title { font-size:14px; color:var(--text); line-height:1.35; }
+    .ag-desc  { font-size:12px; color:var(--text2); margin-top:2px; }
+
+    /* TREINO */
+    .day-chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+    .day-chips::-webkit-scrollbar { display:none; }
+    .day-chip { flex-shrink:0; padding:5px 12px; border-radius:20px; font-size:12px; border:0.5px solid var(--border2); background:var(--surface); color:var(--text2); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .day-chip.active { background:var(--accent); color:var(--bg); border-color:transparent; font-weight:600; }
+    .group-label { font-size:12px; font-weight:600; color:var(--text2); margin:10px 0 4px; display:flex; align-items:center; gap:4px; }
+    .ex-item { display:flex; align-items:center; gap:9px; padding:9px 11px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); margin-bottom:5px; }
+    .ex-check { width:17px; height:17px; accent-color:var(--green-txt); cursor:pointer; flex-shrink:0; }
+    .ex-name  { flex:1; font-size:14px; color:var(--text); }
+    .ex-sets  { font-size:12px; color:var(--text2); flex-shrink:0; }
+    .ex-item.ex-done .ex-name { text-decoration:line-through; opacity:.45; }
+    .ex-item.ex-done { opacity:.6; }
+    .treino-status { font-size:13px; color:var(--text2); }
+    .treino-status strong { color:var(--text); font-weight:600; }
+
+    /* CONTAS */
+    .conta-item { display:flex; align-items:center; gap:9px; padding:10px 12px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-md); }
+    .conta-check { width:17px; height:17px; accent-color:var(--green-txt); cursor:pointer; flex-shrink:0; }
+    .conta-body  { flex:1; min-width:0; }
+    .conta-name  { font-size:14px; color:var(--text); }
+    .conta-venc  { font-size:12px; color:var(--text2); margin-top:1px; }
+    .conta-venc.urgent { color:var(--red-txt); font-weight:600; }
+    .conta-val   { font-size:13px; font-weight:600; color:var(--text); flex-shrink:0; }
+    .conta-item.conta-paga { opacity:.5; }
+    .conta-item.conta-paga .conta-val { color:var(--green-txt); }
+
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
+    .modal-box { background:var(--surface); border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:20px 16px calc(16px + var(--safe-bot)); width:100%; max-width:430px; display:flex; flex-direction:column; gap:10px; animation:slideUp 0.22s ease; }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-title { font-size:15px; font-weight:700; color:var(--text); }
+    .modal-box input,.modal-box textarea { width:100%; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:10px 12px; font-size:14px; color:var(--text); font-family:inherit; outline:none; }
+    .modal-box input:focus,.modal-box textarea:focus { border-color:var(--accent); }
+    .modal-box textarea { min-height:90px; resize:vertical; }
+    .modal-btns { display:flex; gap:8px; margin-top:4px; }
+    .btn-save { flex:1; background:var(--accent); color:var(--bg); border:none; border-radius:var(--radius-md); padding:11px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-cancel { flex:1; background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:11px; font-size:14px; cursor:pointer; font-family:inherit; }
+
+    /* LOGOUT MODAL */
+    .logout-sheet { background:var(--surface); border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:20px 16px calc(20px + var(--safe-bot)); width:100%; max-width:430px; animation:slideUp 0.22s ease; }
+    .logout-user { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .logout-avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+    .logout-name { font-size:15px; font-weight:600; color:var(--text); }
+    .logout-email { font-size:12px; color:var(--text2); }
+    .btn-logout { width:100%; background:var(--red-bg); color:var(--red-txt); border:none; border-radius:var(--radius-md); padding:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-logout:hover { opacity:.85; }
+    .btn-close-sheet { width:100%; background:var(--surface2); color:var(--text2); border:0.5px solid var(--border2); border-radius:var(--radius-md); padding:11px; font-size:14px; cursor:pointer; font-family:inherit; margin-top:8px; }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spin"></div>
+  <p>Carregando...</p>
+</div>
+
+<div id="login-screen" style="display:none;">
+  <i class="ti ti-calendar-check login-icon" aria-hidden="true"></i>
+  <div class="login-title">Meu Dia</div>
+  <div class="login-sub">Entre com sua conta Google para acessar seus dados em qualquer dispositivo.</div>
+  <button class="btn-google" onclick="signInGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+    Entrar com Google
+  </button>
+</div>
+
+<div id="app"></div>
+
+<script type="module">
+import { initializeApp }                                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, onSnapshot }                 from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+/* ── Firebase config ── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAHF4k_6HHxqjXiF6H0GOaKgYhCLC5GFiY",
+  authDomain:        "meu-dia-9a3d1.firebaseapp.com",
+  projectId:         "meu-dia-9a3d1",
+  storageBucket:     "meu-dia-9a3d1.firebasestorage.app",
+  messagingSenderId: "790189649870",
+  appId:             "1:790189649870:web:2ce97ea95f49e518a2c59f"
+};
+
+const fbApp   = initializeApp(firebaseConfig);
+const db      = getFirestore(fbApp);
+const auth    = getAuth(fbApp);
+const provider= new GoogleAuthProvider();
+
+/* ── Estado ── */
+const DAYS   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const now    = new Date();
+const todayDow = now.getDay();
+const DEFAULT  = { notes:[], pauta:[], agenda:[], treino:{}, contas:[], notif:false };
+
+let S       = { ...DEFAULT };
+let V       = { screen:'home', sub:null, treinoDow:todayDow };
+let currentUser = null;
+let unsubSnap   = null;
+let saving      = false;
+
+/* ── Auth ── */
+window.signInGoogle = async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { alert('Erro ao entrar: ' + e.message); }
+};
+window.signOutUser = async () => {
+  closeModal();
+  if(unsubSnap) { unsubSnap(); unsubSnap = null; }
+  await signOut(auth);
+  S = { ...DEFAULT };
+  V = { screen:'home', sub:null, treinoDow:todayDow };
+  currentUser = null;
+  document.getElementById('app').innerHTML = '';
+  document.getElementById('login-screen').style.display = 'flex';
+};
+
+onAuthStateChanged(auth, user => {
+  document.getElementById('loading').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    startSync(user.uid);
+  } else {
+    if(unsubSnap) { unsubSnap(); unsubSnap = null; }
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').innerHTML = '';
+  }
+});
+
+function startSync(uid) {
+  if(unsubSnap) unsubSnap();
+  const ref = doc(db, 'usuarios', uid);
+  unsubSnap = onSnapshot(ref, snap => {
+    if(snap.exists()) S = { ...DEFAULT, ...snap.data() };
+    else S = { ...DEFAULT };
+    render();
+  }, err => { console.error(err); render(); });
+}
+
+async function save() {
+  if(!currentUser || saving) return;
+  saving = true;
+  try { await setDoc(doc(db,'usuarios',currentUser.uid), S); }
+  catch(e) { console.error(e); }
+  saving = false;
+}
+
+/* ── Utils ── */
+function uid()  { return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function esc(s) { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(iso){ if(!iso)return''; const d=new Date(iso.includes('T')?iso:iso+'T12:00'); return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+function fmtTime(iso){ if(!iso)return''; return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function fmtFull(iso){ if(!iso)return''; return fmtDate(iso)+' '+fmtTime(iso); }
+
+function badge(sec){
+  if(sec==='pauta')  return (S.pauta||[]).filter(p=>!p.done).length;
+  if(sec==='contas') return (S.contas||[]).filter(c=>!c.paid).length;
+  if(sec==='agenda') return (S.agenda||[]).filter(a=>new Date(a.dt)>=now).length;
+  if(sec==='treino') return ((S.treino||{})[todayDow]||[]).filter(e=>!e.done).length;
+  return 0;
+}
+
+/* ── Notificações ── */
+window.toggleNotif = async () => {
+  if(!('Notification'in window)){alert('Não suportado.');return;}
+  if(S.notif){S.notif=false;save();render();return;}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){S.notif=true;save();render();new Notification('Meu Dia',{body:'Notificações ativas!'});}
+  else alert('Permissão negada nas configurações do Safari.');
+};
+
+/* ── Modal ── */
+function showModal(html, onSave){
+  closeModal();
+  const el=document.createElement('div');
+  el.id='modal'; el.className='modal-overlay';
+  el.innerHTML=`<div class="modal-box">${html}<div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancelar</button><button class="btn-save" onclick="_mSave()">Salvar</button></div></div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',e=>{if(e.target===el)closeModal();});
+  window._mSave=()=>{onSave();closeModal();};
+  setTimeout(()=>{const i=el.querySelector('input,textarea');if(i)i.focus();},50);
+}
+window.closeModal = () => { const el=document.getElementById('modal'); if(el)el.remove(); };
+
+/* ── User sheet ── */
+window.showUserSheet = () => {
+  closeModal();
+  const u = currentUser;
+  const el=document.createElement('div');
+  el.id='modal'; el.className='modal-overlay';
+  el.innerHTML=`<div class="logout-sheet">
+    <div class="logout-user">
+      ${u.photoURL?`<img class="logout-avatar" src="${u.photoURL}" alt="" />`:'<div class="logout-avatar" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="ti ti-user"></i></div>'}
+      <div><div class="logout-name">${esc(u.displayName||'Usuário')}</div><div class="logout-email">${esc(u.email||'')}</div></div>
+    </div>
+    <button class="btn-logout" onclick="signOutUser()"><i class="ti ti-logout" aria-hidden="true"></i> Sair da conta</button>
+    <button class="btn-close-sheet" onclick="closeModal()">Cancelar</button>
+  </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',e=>{if(e.target===el)closeModal();});
+};
+
+/* ══════════════ HOME ══════════════ */
+const SECTIONS=[
+  {id:'pauta', icon:'ti-list-check',label:'Pauta'},
+  {id:'agenda',icon:'ti-calendar',  label:'Agenda'},
+  {id:'treino',icon:'ti-barbell',   label:'Treino'},
+  {id:'contas',icon:'ti-wallet',    label:'Contas'},
+  {id:'notas', icon:'ti-note',      label:'Notas'},
+];
+function renderHome(){
+  const u=currentUser;
+  const tiles=SECTIONS.map(s=>{
+    const b=badge(s.id);
+    return`<div class="home-tile" onclick="go('${s.id}')">
+      ${b?`<div class="home-badge">${b}</div>`:''}
+      <i class="ti ${s.icon} home-tile-icon" aria-hidden="true"></i>
+      <span class="home-tile-label">${s.label}</span>
+    </div>`;
+  }).join('');
+  const avatar = u && u.photoURL
+    ? `<img class="user-avatar" src="${u.photoURL}" alt="" />`
+    : `<i class="ti ti-user" style="font-size:14px;padding:2px"></i>`;
+  const name = u ? (u.displayName||u.email||'').split(' ')[0] : '';
+  return`<div class="header"><div class="header-row">
+    <div class="header-title">Meu Dia</div>
+    <button class="notif-pill ${S.notif?'on':'off'}" onclick="toggleNotif()"><i class="ti ti-bell" aria-hidden="true"></i> ${S.notif?'Notif. ativas':'Notif.'}</button>
+    <div class="user-pill" onclick="showUserSheet()">${avatar}<span class="user-name">${esc(name)}</span></div>
+  </div></div>
+  <div class="home-wrap">
+    <div class="home-date"><strong>${now.toLocaleDateString('pt-BR',{weekday:'long'})}</strong>, ${now.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="home-grid">${tiles}</div>
+  </div>`;
+}
+
+/* ══════════════ NOTAS ══════════════ */
+function renderNotas(){
+  if(V.sub&&V.sub.type==='nota'){
+    const n=(S.notes||[]).find(x=>x.id===V.sub.id);
+    if(n)return`<div class="header"><div class="header-row">
+      <button class="back-btn" onclick="V.sub=null;render()"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-title" style="font-size:14px">${esc(n.title)}</div>
+      <button class="header-add" onclick="delNota('${n.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+    </div></div>
+    <div class="content"><div class="note-detail">
+      <div class="note-detail-title">${esc(n.title)}</div>
+      <div class="note-detail-text">${esc(n.text)}</div>
+      <div class="note-detail-ts">${fmtFull(n.ts)}</div>
+    </div></div>`;
+  }
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Notas</div>
+    <button class="header-add" onclick="openAddNota()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content"><div class="item-list">
+    ${(S.notes||[]).length?(S.notes||[]).slice().reverse().map(n=>`
+    <div class="note-row" onclick="V.sub={type:'nota',id:'${n.id}'};render()">
+      <div class="note-row-title">${esc(n.title)}</div>
+      <div class="note-row-date">${fmtDate(n.ts)}</div>
+      <i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i>
+    </div>`).join(''):'<div class="empty">Nenhuma nota ainda.<br>Use o <strong>+</strong> para criar.</div>'}
+  </div></div>`;
+}
+window.openAddNota=()=>showModal(`<div class="modal-title">Nova nota</div><input type="text" id="m-ntitle" placeholder="Título" /><textarea id="m-ntext" placeholder="Conteúdo..."></textarea>`,()=>{
+  const t=document.getElementById('m-ntitle').value.trim(),x=document.getElementById('m-ntext').value.trim();
+  if(!t&&!x)return; if(!S.notes)S.notes=[];
+  S.notes.push({id:uid(),title:t||'Sem título',text:x,ts:new Date().toISOString()});save();render();
+});
+window.delNota=(id)=>{S.notes=(S.notes||[]).filter(x=>x.id!==id);V.sub=null;save();render();};
+
+/* ══════════════ PAUTA ══════════════ */
+function renderPauta(){
+  const pend=(S.pauta||[]).filter(p=>!p.done),done=(S.pauta||[]).filter(p=>p.done);
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Pauta</div>
+    <button class="header-add" onclick="openAddPauta()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">
+    <div class="sec-label">Pendentes (${pend.length})</div>
+    <div class="item-list">${pend.length?pend.map(p=>`
+      <div class="item"><input type="checkbox" class="item-check" onchange="togglePauta('${p.id}')" />
+      <div class="item-body"><div class="item-text">${esc(p.title)}</div>${p.desc?`<div class="item-sub">${esc(p.desc)}</div>`:''}</div>
+      <button class="item-del" onclick="delItem('pauta','${p.id}')"><i class="ti ti-x" aria-hidden="true"></i></button></div>`).join('')
+      :'<div class="empty">Nenhuma tarefa pendente.<br>Use o <strong>+</strong> para adicionar.</div>'}
+    </div>
+    ${done.length?`<div class="sec-label" style="margin-top:8px;opacity:.6">Concluídas (${done.length})</div>
+    <div class="item-list">${done.map(p=>`<div class="item done-item">
+      <input type="checkbox" class="item-check" checked onchange="togglePauta('${p.id}')" />
+      <div class="item-body"><div class="item-text">${esc(p.title)}</div>${p.desc?`<div class="item-sub">${esc(p.desc)}</div>`:''}</div>
+      <button class="item-del" onclick="delItem('pauta','${p.id}')"><i class="ti ti-x" aria-hidden="true"></i></button></div>`).join('')}</div>`:''}
+  </div>`;
+}
+window.openAddPauta=()=>showModal(`<div class="modal-title">Nova tarefa</div><input type="text" id="m-ptitle" placeholder="Título da tarefa" /><input type="text" id="m-pdesc" placeholder="Descrição (opcional)" />`,()=>{
+  const t=document.getElementById('m-ptitle').value.trim(); if(!t)return;
+  if(!S.pauta)S.pauta=[];
+  S.pauta.push({id:uid(),title:t,desc:document.getElementById('m-pdesc').value.trim(),done:false});save();render();
+});
+window.togglePauta=(id)=>{const p=(S.pauta||[]).find(x=>x.id===id);if(p){p.done=!p.done;save();render();}};
+
+/* ══════════════ AGENDA ══════════════ */
+function weekStart(dt){const d=new Date(dt),dow=d.getDay();d.setDate(d.getDate()-(dow===0?6:dow-1));return d.toISOString().slice(0,10);}
+function weekRangeLabel(k){const m=new Date(k+'T12:00'),s=new Date(m);s.setDate(m.getDate()+6);return`${m.getDate()} ${MONTHS[m.getMonth()]} — ${s.getDate()} ${MONTHS[s.getMonth()]}`;}
+function renderAgenda(){
+  const future=(S.agenda||[]).filter(a=>new Date(a.dt)>=now).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  const weeks={};future.forEach(a=>{const k=weekStart(a.dt);if(!weeks[k])weeks[k]=[];weeks[k].push(a);});
+  const wkeys=Object.keys(weeks).sort();
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Agenda</div>
+    <button class="header-add" onclick="openAddAgenda()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">${wkeys.length?wkeys.map(k=>`
+    <div class="week-block"><div class="week-label">Semana ${weekRangeLabel(k)}</div>
+    <div class="item-list">${weeks[k].map(a=>{
+      const d=new Date(a.dt),isToday=d.toDateString()===now.toDateString();
+      return`<div class="ag-item${isToday?' today-ev':''}">
+        <div class="ag-pill${isToday?' today-pill':''}"><div class="ag-day">${String(d.getDate()).padStart(2,'0')}</div><div class="ag-month">${MONTHS[d.getMonth()]}</div></div>
+        <div class="ag-body"><div class="ag-time">${DAYS[d.getDay()]}${a.time?' · '+a.time:''}</div><div class="ag-title">${esc(a.title)}</div>${a.desc?`<div class="ag-desc">${esc(a.desc)}</div>`:''}</div>
+        <button class="item-del" onclick="delItem('agenda','${a.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>`;}).join('')}</div></div>`).join('')
+    :'<div class="empty">Nenhum compromisso futuro.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+window.openAddAgenda=()=>showModal(`<div class="modal-title">Novo compromisso</div><input type="text" id="m-atitle" placeholder="Título do compromisso" /><input type="text" id="m-adesc" placeholder="Local / descrição (opcional)" /><input type="date" id="m-adt" /><input type="time" id="m-atime" />`,()=>{
+  const t=document.getElementById('m-atitle').value.trim(),dt=document.getElementById('m-adt').value;
+  if(!t||!dt)return; const time=document.getElementById('m-atime').value;
+  if(!S.agenda)S.agenda=[];
+  S.agenda.push({id:uid(),title:t,desc:document.getElementById('m-adesc').value.trim(),dt:dt+'T'+(time||'00:00'),time:time||null});
+  save();render();
+});
+
+/* ══════════════ TREINO ══════════════ */
+function renderTreino(){
+  const sel=V.treinoDow,exs=((S.treino||{})[sel])||[],done=exs.filter(e=>e.done).length;
+  const groups={};exs.forEach(e=>{const g=e.group||'Geral';if(!groups[g])groups[g]=[];groups[g].push(e);});
+  const chips=DAYS.map((d,i)=>`<div class="day-chip${V.treinoDow===i?' active':''}" onclick="setTreinoDow(${i})">${d}${i===todayDow?'·':''}</div>`).join('');
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Treino</div>
+    <button class="header-add" onclick="openAddEx()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">
+    <div class="day-chips">${chips}</div>
+    <div class="treino-status"><strong>${sel===todayDow?'Hoje — '+DAYS[sel]:DAYS[sel]}</strong> · ${exs.length?`${done} de ${exs.length} exercícios`:'Nenhum exercício cadastrado'}</div>
+    ${Object.keys(groups).length?Object.keys(groups).map(g=>`
+    <div class="group-label"><i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>${esc(g)} <span style="font-weight:400;color:var(--text3)">(${groups[g].filter(e=>e.done).length}/${groups[g].length})</span></div>
+    ${groups[g].map(e=>`<div class="ex-item${e.done?' ex-done':''}">
+      <input type="checkbox" class="ex-check" ${e.done?'checked':''} onchange="toggleEx(${sel},'${e.id}')" />
+      <div class="ex-name">${esc(e.name)}</div>${e.sets?`<div class="ex-sets">${esc(e.sets)}</div>`:''}
+      <button class="item-del" onclick="delEx(${sel},'${e.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>`).join('')}`).join(''):'<div class="empty">Nenhum exercício para este dia.<br>Use o <strong>+</strong> para adicionar.</div>'}
+  </div>`;
+}
+window.setTreinoDow=(i)=>{V.treinoDow=i;render();};
+window.openAddEx=()=>{const sel=V.treinoDow;showModal(`<div class="modal-title">Exercício — ${DAYS[sel]}${sel===todayDow?' (hoje)':''}</div><input type="text" id="m-exname" placeholder="Nome do exercício" /><input type="text" id="m-exsets" placeholder="Séries / reps (ex: 4×12)" /><input type="text" id="m-exgroup" placeholder="Grupo muscular (ex: Peito)" />`,()=>{
+  const n=document.getElementById('m-exname').value.trim(); if(!n)return;
+  if(!S.treino)S.treino={}; if(!S.treino[sel])S.treino[sel]=[];
+  S.treino[sel].push({id:uid(),name:n,sets:document.getElementById('m-exsets').value.trim(),group:document.getElementById('m-exgroup').value.trim()||'Geral',done:false});
+  save();render();});};
+window.toggleEx=(day,id)=>{const e=((S.treino||{})[day]||[]).find(x=>x.id===id);if(e){e.done=!e.done;save();render();}};
+window.delEx=(day,id)=>{if(S.treino&&S.treino[day])S.treino[day]=S.treino[day].filter(x=>x.id!==id);save();render();};
+
+/* ══════════════ CONTAS ══════════════ */
+function vencLabel(v){
+  if(!v)return''; const d=new Date(v+'T12:00'),diff=Math.round((d-now)/(1000*3600*24)),cls=diff<=1?'urgent':'';
+  if(diff<0) return`<div class="conta-venc ${cls}">Vencida em ${fmtDate(v+'T12:00')}</div>`;
+  if(diff===0)return`<div class="conta-venc ${cls}">Vence hoje</div>`;
+  if(diff===1)return`<div class="conta-venc ${cls}">Vence amanhã</div>`;
+  return`<div class="conta-venc">Vence ${fmtDate(v+'T12:00')}</div>`;
+}
+function renderContas(){
+  const pend=(S.contas||[]).filter(c=>!c.paid).sort((a,b)=>(a.venc||'z').localeCompare(b.venc||'z'));
+  const paid=(S.contas||[]).filter(c=>c.paid);
+  return`<div class="header"><div class="header-row">
+    <button class="back-btn" onclick="go('home')"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="header-title">Contas</div>
+    <button class="header-add" onclick="openAddConta()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  </div></div>
+  <div class="content">
+    <div class="sec-label">Em aberto (${pend.length})</div>
+    <div class="item-list">${pend.length?pend.map(c=>`
+      <div class="conta-item"><input type="checkbox" class="conta-check" onchange="toggleConta('${c.id}')" title="Marcar como paga" />
+      <div class="conta-body"><div class="conta-name">${esc(c.name)}</div>${vencLabel(c.venc)}</div>
+      ${c.val!=null?`<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>`:''}
+      <button class="item-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button></div>`).join('')
+      :'<div class="empty">Sem contas em aberto.</div>'}
+    </div>
+    ${paid.length?`<div class="sec-label" style="margin-top:10px;opacity:.6">Pagas (${paid.length})</div>
+    <div class="item-list">${paid.map(c=>`<div class="conta-item conta-paga">
+      <input type="checkbox" class="conta-check" checked onchange="toggleConta('${c.id}')" />
+      <div class="conta-body"><div class="conta-name">${esc(c.name)}</div>${vencLabel(c.venc)}</div>
+      ${c.val!=null?`<div class="conta-val">R$ ${Number(c.val).toFixed(2)}</div>`:''}
+      <button class="item-del" onclick="delItem('contas','${c.id}')"><i class="ti ti-x" aria-hidden="true"></i></button></div>`).join('')}</div>`:''}
+  </div>`;
+}
+window.openAddConta=()=>showModal(`<div class="modal-title">Nova conta</div><input type="text" id="m-cname" placeholder="Nome da conta" /><input type="number" id="m-cval" placeholder="Valor (opcional)" step="0.01" min="0" /><input type="date" id="m-cvenc" />`,()=>{
+  const n=document.getElementById('m-cname').value.trim(); if(!n)return;
+  const v=document.getElementById('m-cval').value; if(!S.contas)S.contas=[];
+  S.contas.push({id:uid(),name:n,val:v?parseFloat(v):null,venc:document.getElementById('m-cvenc').value||null,paid:false});
+  save();render();
+});
+window.toggleConta=(id)=>{const c=(S.contas||[]).find(x=>x.id===id);if(c){c.paid=!c.paid;save();render();}};
+
+/* ── Helpers ── */
+window.delItem=(arr,id)=>{S[arr]=(S[arr]||[]).filter(x=>x.id!==id);save();render();};
+window.go=(screen)=>{V.screen=screen;V.sub=null;render();};
+
+/* ── Render ── */
+function render(){
+  const map={home:renderHome,notas:renderNotas,pauta:renderPauta,agenda:renderAgenda,treino:renderTreino,contas:renderContas};
+  document.getElementById('app').innerHTML=(map[V.screen]||renderHome)();
+}
+window.render=render;
+</script>
+</body>
+</html>
